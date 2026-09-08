@@ -44,3 +44,9 @@ output_files/
 
 *.sopcinfo
 *.qip
+
+/.qsys_edit/
+/platform_designer_module/
+
+# explanation in README
+*.qsys
