@@ -54,6 +54,7 @@ The repository is intended to be used as a template for new DE1-SoC projects.
 After creating a new project from the template, enter the project directory and recreate the Platform Designer system:
 
 ```bash
+export PATH="$PATH:/path/to/quartus/sopc_builder/bin"
 qsys-script --script=platform_designer_module.tcl
 ```
 
