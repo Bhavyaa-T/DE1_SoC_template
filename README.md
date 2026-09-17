@@ -54,6 +54,7 @@ The repository is intended to be used as a template for new DE1-SoC projects.
 After creating a new project from the template, enter the project directory and recreate the Platform Designer system:
 
 ```bash
+export PATH="$PATH:/path/to/quartus/sopc_builder/bin"
 qsys-script --script=platform_designer_module.tcl
 ```
 
@@ -103,6 +104,10 @@ Platform Designer generates a large number of files which do not need to be stor
 Instead, this repository keeps the Tcl script required to recreate the system.
 
 This provides a small, readable and reproducible source for the Platform Designer configuration while allowing generated files to remain excluded from Git.
+
+This also implies your workflow must involve re-generating platform_designer_module.tcl if you make changes via platform designer.
+
+Although this may feel cumbersome, it is a good way to easily see changes made to your platform designer module that would have been otherwise hidden. 
 
 In particular:
 
