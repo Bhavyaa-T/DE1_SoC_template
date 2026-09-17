@@ -5,7 +5,8 @@ SIM = icarus
 TOPLEVEL_LANG = verilog
 
 # List of Verilog source files.
-VERILOG_SOURCES = ../quartus/<custom_peripheral.sv>
+# Replace custom_peripheral.sv with the RTL file(s) for your design.
+VERILOG_SOURCES = ../quartus/custom_peripheral.sv
 
 # The name of the toplevel module/entity in your design.
 COCOTB_TOPLEVEL = custom_peripheral
