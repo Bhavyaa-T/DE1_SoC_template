@@ -55,10 +55,6 @@ hps_isw_handoff/
 c5_pin_model_dump.txt
 hps_sdram_p0_summary.csv
 
-hps_isw_handoff/
-c5_pin_model_dump.txt
-hps_sdram_p0_summary.csv
-
 # explanation in README
 *.qsys
 

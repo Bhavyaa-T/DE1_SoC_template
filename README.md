@@ -14,46 +14,45 @@ This repository provides a clean starting point for projects using the Cyclone V
 
 ```text
 DE1_SoC_template/
+├── quartus/
+│   ├── DE1_SoC_template.qpf
+│   ├── top.qsf
+│   ├── top.sv
+│   └── platform_designer_module.tcl
+│
+├── tests/
+│   ├── Makefile
+│   └── my_testbench.py
+│
+├── requirements.txt
 ├── .gitignore
-├── README.md
-├── DE1_SoC_template.qpf
-├── top.qsf
-├── top.sv
-└── platform_designer_module.tcl
+└── README.md
 ```
 
-### `top.sv`
+## Python Setup
 
-Top-level SystemVerilog module containing the physical interfaces available on the DE1-SoC.
-
-This acts as the board-level wrapper for the design. Project-specific RTL can be instantiated beneath this module as required.
-
-### `top.qsf`
-
-Contains the Quartus project assignments, including:
-
-- target Cyclone V device
-- DE1-SoC pin assignments
-- I/O standards
-- board-level configuration
-
-The intention is that the board-specific assignments can be reused between projects rather than recreated manually.
-
-### `platform_designer_module.tcl`
-
-Tcl representation of the base Platform Designer system.
-
-It contains the configuration required to recreate the Platform Designer design, including the preconfigured DE1-SoC HPS setup.
-
-The generated `.qsys` file is deliberately not stored in the repository. Instead, it can be recreated from this script.
-
-## Starting a New Project
-
-The repository is intended to be used as a template for new DE1-SoC projects.
-
-After creating a new project from the template, enter the project directory and recreate the Platform Designer system:
+From the repository root:
 
 ```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Platform Designer
+
+The Platform Designer system is stored as:
+
+```text
+quartus/platform_designer_module.tcl
+```
+
+The generated `.qsys` file is not tracked.
+
+To recreate it:
+
+```bash
+cd quartus
 export PATH="$PATH:/path/to/quartus/sopc_builder/bin"
 qsys-script --script=platform_designer_module.tcl
 ```
@@ -64,138 +63,96 @@ This creates:
 platform_designer_module.qsys
 ```
 
-The generated `.qsys` file can then be opened in Platform Designer.
+After making changes in Platform Designer, regenerate the system HDL and update the Tcl representation where required.
 
-## Platform Designer Workflow
+## Adding RTL
 
-After generating `platform_designer_module.qsys`:
-
-1. Open the `.qsys` file in Platform Designer.
-2. Keep the existing HPS configuration as the base system.
-3. Add any project-specific peripherals or interfaces.
-4. Connect them to the required HPS-to-FPGA bridge or other interfaces.
-5. Generate the Platform Designer HDL.
-6. Compile the Quartus project.
-
-In general:
-
-```text
-platform_designer_module.tcl
-              │
-              ▼
-platform_designer_module.qsys
-              │
-              ▼
-      Platform Designer
-              │
-        Generate HDL
-              │
-              ▼
-     Generated synthesis files
-              │
-              ▼
-          Quartus build
-```
-
-## Why the Platform Designer System is Stored as Tcl
-
-Platform Designer generates a large number of files which do not need to be stored in version control.
-
-Instead, this repository keeps the Tcl script required to recreate the system.
-
-This provides a small, readable and reproducible source for the Platform Designer configuration while allowing generated files to remain excluded from Git.
-
-This also implies your workflow must involve re-generating platform_designer_module.tcl if you make changes via platform designer.
-
-Although this may feel cumbersome, it is a good way to easily see changes made to your platform designer module that would have been otherwise hidden. 
-
-In particular:
-
-```text
-TRACKED
-    platform_designer_module.tcl
-
-GENERATED
-    platform_designer_module.qsys
-    .qsys_edit/
-    platform_designer_module/
-```
-
-## Adding Project-Specific RTL
-
-Additional SystemVerilog modules can be added alongside `top.sv` or organised into an `rtl/` directory.
+Project-specific RTL can be added inside `quartus/`.
 
 For example:
 
 ```text
-DE1_SoC_template/
+quartus/
 ├── top.sv
-├── rtl/
-│   ├── peripheral.sv
-│   └── controller.sv
+├── custom_peripheral.sv
 └── ...
 ```
 
-Add any new RTL source files to the Quartus project as normal.
+Add new source files to the Quartus project as normal.
 
-The board-level `top.sv` and pin assignments can remain largely unchanged between projects.
+## Testing with cocotb
+
+Tests are stored in:
+
+```text
+tests/
+```
+
+The template Makefile uses:
+
+```make
+SIM = icarus
+WAVES = 1
+```
+
+Update these entries for your design:
+
+```make
+VERILOG_SOURCES = ../quartus/custom_peripheral.sv
+COCOTB_TOPLEVEL = custom_peripheral
+COCOTB_TEST_MODULES = my_testbench
+```
+
+Then run:
+
+```bash
+cd tests
+make
+```
+
+Simulation output is generated in:
+
+```text
+tests/sim_build/
+```
+
+Waveforms can be opened in GTKWave.
 
 ## Generated Files
 
-Quartus and Platform Designer produce build databases, reports, synthesis output and programming files.
+Generated Quartus, Platform Designer, Python and simulation files are excluded using `.gitignore`.
 
-These are intentionally excluded using `.gitignore`.
-
-Examples include:
+Examples:
 
 ```text
 db/
-incremental_db/
 output_files/
 .qsys_edit/
 platform_designer_module/
-*.sof
-*.rpt
-*.sopcinfo
+*.qsys
+sim_build/
 ```
-
-These files should be regenerated locally rather than committed to the repository.
 
 ## Typical Workflow
 
 ```text
 Create project from template
-          │
-          ▼
-Generate .qsys from Tcl
-          │
-          ▼
-Open Platform Designer
-          │
-          ▼
-Add project-specific hardware
-          │
-          ▼
-Generate HDL
-          │
-          ▼
-Add/write project RTL
-          │
-          ▼
+        ↓
+Create / activate .venv
+        ↓
+Install requirements
+        ↓
+Generate Platform Designer .qsys
+        ↓
+Write RTL
+        ↓
+Test with cocotb + Icarus
+        ↓
 Compile in Quartus
-          │
-          ▼
+        ↓
 Program DE1-SoC
 ```
 
-## Toolchain
+---
 
-The template was created using:
-
-- **Quartus Prime Lite 25.1**
-- **Platform Designer**
-- **SystemVerilog**
-
-Other Quartus versions may also work, although generated IP or Platform Designer configuration may require upgrading when moving between versions.
-
-## Note: This README file was generated with the assistance of AI and reviewed by the project author.
+*This README was generated with the assistance of AI and reviewed by the project author.*
