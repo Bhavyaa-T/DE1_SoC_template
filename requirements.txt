@@ -1,1 +1,2 @@
-cocotb
+cocotb==2.1.0
+cocotb-coverage==2.0
